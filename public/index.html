@@ -1,0 +1,82 @@
+<!-- public/index.html -->
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+  <meta charset="UTF-8" />
+  <title>Többjátékos CountDown Időmérő</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+    }
+    input[type="text"] {
+      padding: 5px;
+      font-size: 1rem;
+    }
+    button {
+      padding: 6px 12px;
+      font-size: 1rem;
+      margin-left: 5px;
+    }
+    #player-list {
+      margin-top: 20px;
+      border-collapse: collapse;
+      width: 100%;
+    }
+    #player-list th,
+    #player-list td {
+      border: 1px solid #ccc;
+      padding: 8px;
+      text-align: left;
+    }
+    #player-list th {
+      background-color: #f0f0f0;
+    }
+    .active {
+      background-color: #d0f0d0;
+    }
+    .lost {
+      background-color: #f0d0d0;
+      color: #900;
+      text-decoration: line-through;
+    }
+  </style>
+</head>
+<body>
+
+  <h2>Többjátékos Countdown Időmérő</h2>
+
+  <!-- 1) Játékos regisztrálása -->
+  <div>
+    <label for="player-name">Játékos neve:</label>
+    <input type="text" id="player-name" placeholder="Írj be egy nevet" />
+    <button id="register-btn">Regisztrálás</button>
+  </div>
+
+  <!-- 2) Játék indítása, váltás, szünet -->
+  <div style="margin-top: 15px;">
+    <button id="start-game-btn" disabled>Játék indítása</button>
+    <button id="next-player-btn" disabled>Következő játékos</button>
+    <button id="pause-resume-btn" disabled>Szünet</button>
+  </div>
+
+  <!-- 3) Táblázat: játékosok neve, állapotuk, visszaszámláló -->
+  <table id="player-list">
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>Játékos</th>
+        <th>Idő visszaszámolás</th>
+      </tr>
+    </thead>
+    <tbody>
+      <!-- Ide a JS generálja a sorokat -->
+    </tbody>
+  </table>
+
+  <!-- 4) Socket.io klienskönyvtár betöltése -->
+  <script src="/socket.io/socket.io.js"></script>
+  <!-- 5) Saját kliensoldali JS -->
+  <script src="client.js"></script>
+</body>
+</html>
