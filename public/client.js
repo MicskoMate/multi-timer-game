@@ -1,24 +1,21 @@
 // public/client.js
 
-// 1) Csatlakozás Socket.io szerverhez
+// Socket.io kliens inicializálása
 const socket = io();
 
-// Aktuális játékosok adatai a szervertől. Formátum: 
-// [
-//   { id, name, remainingMs, isActive, hasLost },
-//   ...
-// ]
+// Helyi változó: itt tartjuk majd a szerverről érkező játékos‐adatokat
 let playersData = [];
 
-// Elemkiválasztások
-const registerBtn = document.getElementById('register-btn');
-const startGameBtn = document.getElementById('start-game-btn');
-const nextPlayerBtn = document.getElementById('next-player-btn');
-const pauseResumeBtn = document.getElementById('pause-resume-btn');
-const playerNameInput = document.getElementById('player-name');
-const playerListTbody = document.querySelector('#player-list tbody');
+// DOM-elemek kiválasztása
+const registerBtn      = document.getElementById('register-btn');
+const startGameBtn     = document.getElementById('start-game-btn');
+const nextPlayerBtn    = document.getElementById('next-player-btn');
+const pauseResumeBtn   = document.getElementById('pause-resume-btn');
+const playerNameInput  = document.getElementById('player-name');
+const playerTimeInput  = document.getElementById('player-time');
+const playerListTbody  = document.querySelector('#player-list tbody');
 
-// Helper: milliszekundumból HH:MM:SS string
+// Segédfüggvény: milliszekundumból HH:MM:SS formátum
 function formatTime(ms) {
   if (ms < 0) ms = 0;
   const totalSeconds = Math.floor(ms / 1000);
@@ -31,7 +28,7 @@ function formatTime(ms) {
   return `${hh}:${mm}:${ss}`;
 }
 
-// Frissítsük a táblázatot (playersData alapján)
+// Frissítjük a táblázatot a playersData alapján
 function renderTable() {
   playerListTbody.innerHTML = '';
 
@@ -44,33 +41,30 @@ function renderTable() {
       tr.classList.add('lost');
     }
 
-    const tdIdx = document.createElement('td');
+    const tdIdx   = document.createElement('td');
     tdIdx.textContent = idx + 1;
 
-    const tdName = document.createElement('td');
+    const tdName  = document.createElement('td');
     tdName.textContent = pl.name;
 
-    const tdTime = document.createElement('td');
-    // Ha kiesett, “00:00:00”-t mutatunk, és pirosan áthúzva
+    const tdTime  = document.createElement('td');
     tdTime.textContent = formatTime(pl.remainingMs);
 
     tr.appendChild(tdIdx);
     tr.appendChild(tdName);
     tr.appendChild(tdTime);
-
     playerListTbody.appendChild(tr);
   });
 }
 
-// ------------- Socket.io események -------------
+// -------------------- Socket.io események --------------------
 
-// 1) Amikor a szerver “players_data”-t küld, frissítjük a playersData tömböt és újrarendereljük
+// 1) Szerver küldi a full players tömböt (id, name, remainingMs, isActive, hasLost)
 socket.on('players_data', (allPlayers) => {
   playersData = allPlayers;
   renderTable();
 
-  // Ha legalább 2 játékos regisztrálva van, engedélyezzük a “Játék indítása” gombot,
-  // de csak akkor, ha a játék még nem indult (tehát nincs aktív játékos).
+  // Ha legalább 2 élő játékos van, és még senki sem aktív, engedélyezzük a "Játék indítása" gombot
   const aliveCount = playersData.filter(pl => !pl.hasLost).length;
   if (aliveCount >= 2 && !playersData.some(pl => pl.isActive)) {
     startGameBtn.disabled = false;
@@ -78,7 +72,7 @@ socket.on('players_data', (allPlayers) => {
     startGameBtn.disabled = true;
   }
 
-  // Ha van aktív játékos, engedélyezzük a “Következő játékos” és “Szünet” gombokat
+  // Ha van aktív játékos, engedélyezzük a "Következő játékos" és a "Szünet" gombokat
   if (playersData.some(pl => pl.isActive)) {
     nextPlayerBtn.disabled = false;
     pauseResumeBtn.disabled = false;
@@ -87,8 +81,8 @@ socket.on('players_data', (allPlayers) => {
     pauseResumeBtn.disabled = true;
   }
 
-  // Ha van aktív, de countdown nem fut (például épp szüneteltetve van), akkor a “Szünet” gomb feliratát
-  // “Újraindítás”-ra állítjuk. Ha viszont fut, maradjon “Szünet”.
+  // Szünet / újraindítás felirat kezelése
+  // Ha van aktív de a visszaszámlálás nem fut (remainingMs > 0, de pl. szüneteltetve), akkor 'Újraindítás'
   const isCountdownRunning = playersData.some(pl => pl.isActive && pl.remainingMs > 0);
   if (!isCountdownRunning && playersData.some(pl => pl.isActive && !pl.hasLost && pl.remainingMs > 0)) {
     pauseResumeBtn.textContent = 'Újraindítás';
@@ -97,22 +91,36 @@ socket.on('players_data', (allPlayers) => {
   }
 });
 
-// 2) Hibaüzenet esetén a szerver “error_message”-et küldhet
+// 2) Ha a szerver hibaüzenetet küld
 socket.on('error_message', (msg) => {
   alert(msg);
 });
 
-// ------------- Felhasználói gombnyomások -------------
+// -------------------- Felhasználói események --------------------
 
-// Regisztrálás: elküldjük a nevet
+// Játékos regisztrálása: elküldjük a 'register_player' eseményt névvel és idővel (millisec)
 registerBtn.addEventListener('click', () => {
-  const name = playerNameInput.value.trim();
+  const name  = playerNameInput.value.trim();
+  const mins  = parseInt(playerTimeInput.value, 10);
+
   if (!name) {
     alert('Írj be egy nevet!');
     return;
   }
-  socket.emit('register_player', name);
+  if (isNaN(mins) || mins <= 0) {
+    alert('Adj meg egy pozitív számot percekben!');
+    return;
+  }
+
+  // Átkonvertáljuk milliszekundumba
+  const initialMs = mins * 60 * 1000;
+
+  // Küldjük a szervernek: { name: string, initialMs: number }
+  socket.emit('register_player', { name, initialMs });
+
+  // Kiürítjük a beviteli mezőket
   playerNameInput.value = '';
+  playerTimeInput.value = '10';
 });
 
 // Játék indítása
@@ -125,7 +133,7 @@ nextPlayerBtn.addEventListener('click', () => {
   socket.emit('next_player');
 });
 
-// Szünet/Újraindítás
+// Szünet / Újraindítás
 pauseResumeBtn.addEventListener('click', () => {
   socket.emit('toggle_pause');
 });

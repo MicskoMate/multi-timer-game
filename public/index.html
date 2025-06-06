@@ -3,21 +3,25 @@
 <html lang="hu">
 <head>
   <meta charset="UTF-8" />
-  <title>Többjátékos CountDown Időmérő</title>
+  <title>Többjátékos Countdown Időmérő</title>
   <style>
+    /* (ugyanaz CSS, mint előzőleg) */
     body {
       font-family: Arial, sans-serif;
       margin: 20px;
     }
-    input[type="text"] {
+    input[type="text"], input[type="number"] {
       padding: 5px;
       font-size: 1rem;
+      width: 150px;
+      margin-right: 5px;
     }
     button {
       padding: 6px 12px;
       font-size: 1rem;
       margin-left: 5px;
     }
+    /* ... a többi stílus marad ugyanaz ... */
     #player-list {
       margin-top: 20px;
       border-collapse: collapse;
@@ -46,21 +50,25 @@
 
   <h2>Többjátékos Countdown Időmérő</h2>
 
-  <!-- 1) Játékos regisztrálása -->
+  <!-- 1) Játékos regisztrálása: név + kezdeti idő (perc) -->
   <div>
     <label for="player-name">Játékos neve:</label>
-    <input type="text" id="player-name" placeholder="Írj be egy nevet" />
+    <input type="text" id="player-name" placeholder="Írd be a nevet" />
+
+    <label for="player-time">Kezdeti idő (perc):</label>
+    <input type="number" id="player-time" placeholder="Pl. 10" value="10" min="1" />
+
     <button id="register-btn">Regisztrálás</button>
   </div>
 
-  <!-- 2) Játék indítása, váltás, szünet -->
+  <!-- 2) Játék indítása, váltás, szünet (ezek maradnak) -->
   <div style="margin-top: 15px;">
     <button id="start-game-btn" disabled>Játék indítása</button>
     <button id="next-player-btn" disabled>Következő játékos</button>
     <button id="pause-resume-btn" disabled>Szünet</button>
   </div>
 
-  <!-- 3) Táblázat: játékosok neve, állapotuk, visszaszámláló -->
+  <!-- 3) Táblázat: játékosok neve, állapot, visszaszámláló -->
   <table id="player-list">
     <thead>
       <tr>
@@ -70,13 +78,13 @@
       </tr>
     </thead>
     <tbody>
-      <!-- Ide a JS generálja a sorokat -->
+      <!-- Ide a JS-generált sorok kerülnek -->
     </tbody>
   </table>
 
   <!-- 4) Socket.io klienskönyvtár betöltése -->
   <script src="/socket.io/socket.io.js"></script>
-  <!-- 5) Saját kliensoldali JS -->
+  <!-- 5) Saját kliensoldali JS (módosítjuk) -->
   <script src="client.js"></script>
 </body>
 </html>
